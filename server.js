@@ -6,11 +6,32 @@ var bodyParser = require('body-parser');
 var mongojs = require('mongojs');
 var morgan = require('morgan');
 var mongoose = require('mongoose');
+var sequelize = require('sequelize');
 var app = express();
+var Schema = mongoose.Schema;
 
-var databaseUrl = "forum";
-var collections = ["articles"];
-var db = mongojs(databaseUrl, collections);
+
+// Create article schema
+var ArticleSchema = new Schema({
+  // title is required
+  title: {
+    type:String,
+    required:true
+  },
+  // link is required
+  link: {
+    type:String,
+    required:true
+  },
+  // this only saves one note's ObjectId. ref refers to the Note model.
+  note: {
+      type: Schema.Types.ObjectId,
+      ref: 'Note'
+  }
+});
+
+// Create the Article model with the ArticleSchema
+var Article = mongoose.model('Article', ArticleSchema);
 
 // use morgan and bodyparser with our app, I need more reading on this
 app.use(morgan('dev'));
@@ -19,6 +40,9 @@ app.use(bodyParser.urlencoded({
 }));
 
 app.use(express.static('public')); // This is the path to my static files
+
+mongoose.connect('mongodb://localhost/scrape');
+var db = mongoose.connection;
 
 // this makes sure that any errors are logged if mongodb runs into an issue
 db.on('error', function(err) {
@@ -34,38 +58,33 @@ request('https://gbatemp.net/forums/ps-vita-hacking-homebrew.217/', function (er
   // Save my cereal into a variable for easier access
   var $ = cheerio.load(html);
 
-  var result = [];
+  
+
+  var gbatemp = "https://gbatemp.net/";
 
   $('h3.title').each(function(i, element){
 
-      var title = $(this).text().trim();
+    var result = {};
 
-      var link = $(element).children().attr('href');
+      result.title = $(this).children('a').text().trim();
+      result.link = $(this).children('a').attr('href');
+
+      var entry = new Article (result);
+
+
+
+
+
       
-      result.push({
-        title:title,
-        link:link
       });
+      console.log(result);
+
     });
 
-  console.log(result);
   
-/*
-  use zoo
-db.animals.insert({"name":"Panda", "numlegs":4, "class":"mammal", "weight": 254, "whatIWouldReallyCallIt":"Captain Fuzzy Face"})*/
+  
 
-});
-
-		
-
-app.get('/', function(req, res){
-		if (err){
-			throw err;
-		}
-		res.json(data);
-	})
-
-
+}
 
 
 
