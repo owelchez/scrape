@@ -42,9 +42,9 @@ app.use(bodyParser.urlencoded({
 app.use(express.static('public')); // This is the path to my static files
 
 mongoose.connect('mongodb://localhost/scrape');
-var db = mongoose.connection;
+var db = mongojs('gba', ['hackz']);
 
-// this makes sure that any errors are logged if mongodb runs into an issue
+// this makes sure that any errors are logged if mongodb runs into an issue AKA error listener
 db.on('error', function(err) {
   console.log('Database Error:', err);
 });
@@ -54,42 +54,47 @@ request('https://gbatemp.net/forums/ps-vita-hacking-homebrew.217/', function (er
   if (err){
     throw err;
   }
+
+  var dbLength = db.hackz.length;
+  console.log(dbLength);
   
   // Save my cereal into a variable for easier access
   var $ = cheerio.load(html);
 
-  
-
   var gbatemp = "https://gbatemp.net/";
+  var results = [];
+
+  var dbLength = db.hackz.count();
 
   $('h3.title').each(function(i, element){
 
-    var result = {};
 
-      result.title = $(this).children('a').text().trim();
-      result.link = $(this).children('a').attr('href');
+    var title = $(element).text().trim();
+    var link = gbatemp + $(element).find('a').attr('href');
 
-      var entry = new Article (result);
-
-
-
-
-
-      
-      });
-      console.log(result);
-
+    results.push({
+      title: title,
+      link: link
     });
 
+
+
+    db.hackz.save(results);
+
+      });
+    });
   
-  
+  app.get('/', function(req, res){
 
-}
-
-
+  });
 
 
 
+
+
+
+
+//var port = process.env.PORT || 3000;
 
 // Running in port 3000
 app.listen(3000, function() {
