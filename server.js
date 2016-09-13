@@ -41,10 +41,11 @@ app.use(bodyParser.urlencoded({
 
 app.use(express.static('public')); // This is the path to my static files
 
-mongoose.connect('mongodb://localhost/scrape');
-var db = mongojs('gba', ['hackz']);
+var databaseUrl = "gba";
+var collections = ["hackz"];
 
 // this makes sure that any errors are logged if mongodb runs into an issue AKA error listener
+var db = mongojs(databaseUrl, collections);
 db.on('error', function(err) {
   console.log('Database Error:', err);
 });
@@ -84,12 +85,38 @@ request('https://gbatemp.net/forums/ps-vita-hacking-homebrew.217/', function (er
       });
     });
   
-  app.get('/', function(req, res){
+  app.get('/', function(req, res) {
+  res.send(index.html);
+});
 
+
+
+app.post('/submit', function(req, res) {
+
+  var note = req.body;
+
+  note.read = false;
+
+  db.hackz.insert(note, function (err, savedNote) {
+    if (err) {
+      res.send(err);
+    } else {
+      res.json(savedNote);
+    }
   });
+});
 
-
-
+app.get('/markread/:id', function(req, res) {
+  db.note.update({
+   _id: mongojs.ObjectId(req.params.id)
+  }, {
+    $set: {
+      read: true
+    }
+  }, function (err, updatedBook) {
+    res.json(updatedBook);
+  });
+});
 
 
 
