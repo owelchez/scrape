@@ -56,16 +56,11 @@ request('https://gbatemp.net/forums/ps-vita-hacking-homebrew.217/', function (er
     throw err;
   }
 
-  var dbLength = db.hackz.length;
-  console.log(dbLength);
-  
   // Save my cereal into a variable for easier access
   var $ = cheerio.load(html);
 
   var gbatemp = "https://gbatemp.net/";
   var results = [];
-
-  var dbLength = db.hackz.count();
 
   $('h3.title').each(function(i, element){
 
@@ -78,12 +73,13 @@ request('https://gbatemp.net/forums/ps-vita-hacking-homebrew.217/', function (er
       link: link
     });
 
-
-
     db.hackz.save(results);
 
       });
     });
+
+
+
   
   app.get('/', function(req, res) {
   res.send(index.html);
@@ -113,7 +109,7 @@ app.get('/markread/:id', function(req, res) {
     $set: {
       read: true
     }
-  }, function (err, updatedBook) {
+  }, function (err, updatedNote) {
     res.json(updatedBook);
   });
 });
